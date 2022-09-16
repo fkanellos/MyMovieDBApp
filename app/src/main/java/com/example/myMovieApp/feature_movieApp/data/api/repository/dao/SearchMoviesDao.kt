@@ -1,7 +1,7 @@
-package com.example.mymovieapp.feature_movieApp.data.api.repository.dao
+package com.example.myMovieApp.feature_movieApp.data.api.repository.dao
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SearchMoviesDao(

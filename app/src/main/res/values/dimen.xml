@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_8">8dp</dimen>
+    <dimen name="margin_4">4dp</dimen>
+    <dimen name="paging_image_height">250dp</dimen>
+
+    <!--    values to sp-->
+    <dimen name="textSize_16">16sp</dimen>
+</resources>

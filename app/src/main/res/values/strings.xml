@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">My Movie App</string>
+    <string name="retry_message">Result not loaded, try again</string>
+    <string name="retry">Retry</string>
 </resources>
