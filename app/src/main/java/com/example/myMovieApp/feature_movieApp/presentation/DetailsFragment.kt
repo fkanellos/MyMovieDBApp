@@ -19,8 +19,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.myMovieApp.R
+import com.example.myMovieApp.adapter.VideoAdapter
 import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.databinding.DetailsFragmentBinding
+import com.example.myMovieApp.feature_movieApp.data.api.ApiService
+import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
 import com.example.myMovieApp.feature_movieApp.domain.model.MovieAppViewModel
 
 class DetailsFragment : Fragment(R.layout.details_fragment) {
@@ -32,19 +35,13 @@ class DetailsFragment : Fragment(R.layout.details_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        viewModel.searchMovieTrailer()
+//        val videoAdapter = VideoAdapter()
 
-
-
-
-
-        videoView = view.findViewById(R.id.videoView) as VideoView?
-
-        if (mediaController == null) {
-            mediaController = MediaController(requireContext())
-            mediaController!!.setAnchorView(this.videoView)
-        }
-        videoView!!.setMediaController(mediaController)
+//        if (mediaController == null) {
+//            mediaController = MediaController(requireContext())
+//            mediaController!!.setAnchorView(this.videoView)
+//        }
+//        videoView!!.setMediaController(mediaController)
 
         val binding = DetailsFragmentBinding.bind(view)
 
@@ -83,15 +80,21 @@ class DetailsFragment : Fragment(R.layout.details_fragment) {
 //            title.text = model.title
             rating.text = model.vote_average.toString()
             text.text = model.overview
-            if (!model.videos?.results?.get(0)?.key.isNullOrEmpty()){
-                val videoKey = model.videos!!.results!![0].key
-                val videoUrl = String.format(Constants.VIDEO_URL,videoKey)
-                val videoUri = Uri.parse(videoUrl)
-                videoView!!.setVideoURI(videoUri)
-                videoView!!.requestFocus()
-                videoView!!.start()
+//            binding.apply {
+//                val playButton = view.
+//            }
+////            if (!model.videos?.results?.get(0)?.key.isNullOrEmpty()){
+////                val videoKey = model.videos!!.results!![0].key
+////            https://www.youtube.com/watch?v=G-DNzNNcR8M
+//                val videoUrl = String.format(Constants.VIDEO_URL,videoKey)
+//                val videoUri = Uri.parse(videoUrl)
+//                videoView!!.setVideoURI(videoUri)
+//                videoView!!.requestFocus()
+//                videoView!!.
+//                videoView!!.setMediaController()
+//                videoView!!.start()
 
-            }
+//            }
 
 
         }
