@@ -2,17 +2,19 @@ package com.example.myMovieApp.feature_movieApp.data.api.repository.dao
 
 import android.os.Parcelable
 import androidx.room.Entity
-import kotlinx.parcelize.Parcelize
+import androidx.room.PrimaryKey
+import kotlinx.android.parcel.Parcelize
 
-//@Entity(
-//    tableName = "movie and tv shows"
-//)
+@Entity(
+    tableName = "movie table"
+)
 @Parcelize
 data class MovieResultModel(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int?,
     val adult: Boolean?,
     val backdrop_path: String?,
-    val genre_ids: List<Int>?,
-    val id: Int?,
+//    val genre_ids: List<Int>?,
     val media_type: String?,
     val original_language: String?,
     val original_title: String?,
@@ -24,9 +26,9 @@ data class MovieResultModel(
     val video: Boolean?,
     val first_air_date: String?,
     val name: String?,
-    val origin_country: List<String>?,
+//    val origin_country: List<String>?,
     val original_name: String?,
     val vote_average: Double?,
     val vote_count: Int?,
-    val videos: VideoResultModel?
+//    val videos: VideoResultModel?
 ) : Parcelable

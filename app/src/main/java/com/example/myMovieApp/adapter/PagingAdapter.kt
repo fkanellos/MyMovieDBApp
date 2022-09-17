@@ -15,8 +15,7 @@ import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResu
 class PagingAdapter(private val listener: OnItemClickListener) :
     PagingDataAdapter<MovieResultModel, PagingAdapter.MovieViewHolder>(MOVIE_COMPARATOR) {
 
-    inner class MovieViewHolder(private val binding: RecyclerItemViewBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class MovieViewHolder(private val binding: RecyclerItemViewBinding) : RecyclerView.ViewHolder(binding.root) {
 
         init {
             binding.root.setOnClickListener {

@@ -6,6 +6,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".feature_movieApp.presentation.SearchFragment">
 
+    <EditText
+        android:id="@+id/etSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search..."
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
@@ -14,46 +24,60 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/recycler_item_view" />
+        app:layout_constraintTop_toBottomOf="@id/etSearch"/>
+<!--        tools:listitem="@layout/recycler_item_view" -->
+
 
     <ProgressBar
         android:id="@+id/progress_bar"
+        style="?attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/recycler_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/recycler_view"
+        android:visibility="invisible"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <TextView
-        android:id="@+id/text_view_error"
-        android:layout_width="wrap_content"
+    <include
+        android:id="@+id/load_state_footer"
+        layout="@layout/load_state_footer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/button_retry"
-        android:layout_centerHorizontal="true"
-        android:text="Results could not be loaded"
-        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progress_bar"
-        tools:visibility="visible"
-        android:layout_marginTop="@dimen/margin_8"/>
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toBottomOf="@id/progress_bar"
 
-    <Button
-        android:id="@+id/button_retry"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Retry"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_view_error"
-        tools:visibility="visible"
-        android:layout_marginTop="@dimen/margin_8"/>
+        />
+
+<!--    <TextView-->
+<!--        android:id="@+id/text_view_error"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_above="@id/button_retry"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:text="Results could not be loaded"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/progress_bar"-->
+<!--        tools:visibility="visible"-->
+<!--        android:layout_marginTop="@dimen/margin_8"/>-->
+
+<!--    <Button-->
+<!--        android:id="@+id/button_retry"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_centerInParent="true"-->
+<!--        android:text="Retry"-->
+<!--        android:visibility="gone"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/text_view_error"-->
+<!--        tools:visibility="visible"-->
+<!--        android:layout_marginTop="@dimen/margin_8"/>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
