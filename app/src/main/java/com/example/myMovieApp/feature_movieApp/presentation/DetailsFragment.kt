@@ -1,17 +1,13 @@
 package com.example.myMovieApp.feature_movieApp.presentation
 
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.MediaController
-import android.widget.Toast
 import android.widget.VideoView
-import androidx.compose.runtime.key
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -19,11 +15,8 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.myMovieApp.R
-import com.example.myMovieApp.adapter.VideoAdapter
 import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.databinding.DetailsFragmentBinding
-import com.example.myMovieApp.feature_movieApp.data.api.ApiService
-import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
 import com.example.myMovieApp.feature_movieApp.domain.model.MovieAppViewModel
 
 class DetailsFragment : Fragment(R.layout.details_fragment) {
@@ -77,26 +70,78 @@ class DetailsFragment : Fragment(R.layout.details_fragment) {
                 })
                 .into(imageView)
             title.text = if (model.title.isNullOrEmpty()) model.name else model.title
-//            title.text = model.title
             rating.text = model.vote_average.toString()
             text.text = model.overview
-//            binding.apply {
-//                val playButton = view.
-//            }
-////            if (!model.videos?.results?.get(0)?.key.isNullOrEmpty()){
-////                val videoKey = model.videos!!.results!![0].key
-////            https://www.youtube.com/watch?v=G-DNzNNcR8M
-//                val videoUrl = String.format(Constants.VIDEO_URL,videoKey)
-//                val videoUri = Uri.parse(videoUrl)
-//                videoView!!.setVideoURI(videoUri)
-//                videoView!!.requestFocus()
-//                videoView!!.
-//                videoView!!.setMediaController()
-//                videoView!!.start()
 
+//            if (!model.videos?.results?.get(0)?.key.isNullOrEmpty()){
+//                videoID = model.videos!!.results!![0].key
+//
+//
 //            }
+
+//            favBtn.setOnClickListener {
+//                model.id?.let{
+//                    val exists: Boolean = viewModel.isMovieInDB(id).observe(viewLifecycleOwner, Observer { exist ->
+//                            if (exists){
+//                                viewModel.deleteSavedMovieSeries(model)
+//                                handleFavBtn(model, exists)
+//                            } else {
+//                                viewModel.saveMovieSeries(model)
+//                                handleFavBtn(model, exists)
+//                            }
+//                        })}
+//
+//                }
+
+//            viewModel.searchMovies(title.text).observe(viewLifecycleOwner, Observer {
+//                model.id?.let {
+//                    addFavBtn = viewModel.hasDbItems()
+//                    if (addFavBtn) {
+//                        viewModel.deleteSavedMovieSeries(model)
+//                        handleFavBtn(model, addFavBtn)
+//                    } else {
+//                        viewModel.saveMovieSeries(model)
+//                        handleFavBtn(model, addFavBtn)
+//
+//                    }
+//
+//                }
+//            })
+            }
+//        // on below line we are adding listener
+//        // for our youtube player view.
+//        youtubePlayerView.addYouTubePlayerListener(object : AbstractYouTubePlayerListener() {
+//
+//            override fun onReady(youTubePlayer: YouTubePlayer) {
+//                // loading the selected video
+//                // into the YouTube Player
+//                videoID?.let { youTubePlayer.loadVideo(it, 0f) }
+//            }
+//
+//            override fun onStateChange(
+//                youTubePlayer: YouTubePlayer,
+//                state: PlayerConstants.PlayerState
+//            ) {
+//                // this method is called if video has ended,
+//                super.onStateChange(youTubePlayer, state)
+//            }
+//        })
+
 
 
         }
     }
-}
+
+
+//    private fun handleFavBtn(movieSeries: MovieResultModel, clicked: Boolean) {
+//        addFavBtn = clicked
+//        if (clicked) {
+//            favBtn.setTextColor(resources.getColor(R.color.white))
+//            favBtn.text = "added"
+//            favBtn.setBackgroundColor(resources.getColor(R.color.purple_700))
+//        } else {
+//            favBtn.setTextColor(resources.getColor(R.color.black))
+//            favBtn.text = "add"
+//            favBtn.setBackgroundColor(resources.getColor(R.color.white))
+//        }
+//    }

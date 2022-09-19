@@ -3,32 +3,22 @@ package com.example.myMovieApp.feature_movieApp.presentation
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.AbsListView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import androidx.paging.LoadState
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.liveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myMovieApp.R
 import com.example.myMovieApp.adapter.MovieSeriesAdapter
-import com.example.myMovieApp.adapter.PagingAdapter
 import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.common.Constants.SEARCH_TIME_DELAY
 import com.example.myMovieApp.common.Resource
-import com.example.myMovieApp.common.StringUtils
 import com.example.myMovieApp.databinding.FragmentItemBinding
-import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
-import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.SearchMoviesDao
 import com.example.myMovieApp.feature_movieApp.domain.model.MovieAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_item.*
@@ -39,74 +29,29 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class SearchFragment : Fragment(R.layout.fragment_item){
+class SearchFragment : Fragment(R.layout.fragment_item) {
+
     lateinit var viewModel: MovieAppViewModel
     private var _binding: FragmentItemBinding? = null
     private val binding get() = _binding!!
     lateinit var movieSeriesAdapter: MovieSeriesAdapter
-
+    lateinit var searchIcon: MenuItem
+    lateinit var searchView: SearchView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        _binding = view.let { FragmentItemBinding.bind(it) }
-//        pagingAdapter = PagingAdapter(this)
         viewModel = (activity as MainActivity).viewModel
+//        viewModel.hasDbItems()
         setUpRecyclerView()
+        setHasOptionsMenu(true)
 
         movieSeriesAdapter.setOnItemClickListener {
             val action = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(it)
 
             findNavController().navigate(action)
         }
-        // TODO ELEGXOS GIA TO AN I DB EXEI ESTW ENA ELEMENT GIA NA EMFANIZEI TO KOUMPI
-        var job: Job? = null
-        etSearch.addTextChangedListener{ editable ->
-            job?.cancel()
-            job = MainScope().launch {
-                delay(SEARCH_TIME_DELAY)
-                editable?.let {
-                    if(editable.toString().isNotEmpty()) {
-                        viewModel.searchMovies(editable.toString())
-                    }
-                }
-            }
-        }
-        viewModel.searchMovieSeries.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    hideProgressBar()
-                    hideErrorMessage()
-                    response.data?.let { movSeriesResponse ->
-                        movieSeriesAdapter.differ.submitList(movSeriesResponse.results.toList())
-                        val totalPages = movSeriesResponse.total_pages / Constants.QUERY_PAGE_SIZE + 2
-                        isLastPage = viewModel.searchMovieSeriesPage == totalPages
-                        if(isLastPage) {
-                            recycler_view.setPadding(0, 0, 0, 0)
-                        }
-                    }
-                }
-                is Resource.Error -> {
-                    hideProgressBar()
-                    response.message?.let { message ->
-                        Toast.makeText(activity, "An error occured: $message", Toast.LENGTH_LONG).show()
-                        showErrorMessage(message)
-                    }
-                }
-                is Resource.Loading -> {
-                    showProgressBar()
-                }
-            }
-        })
-        button_retry.setOnClickListener {
-            if (etSearch.text.toString().isNotEmpty()) {
-                viewModel.searchMovies(etSearch.text.toString())
-            } else {
-                hideErrorMessage()
-            }
-        }
-
-//        setHasOptionsMenu(true)
     }
+
     private fun hideProgressBar() {
         progress_bar.visibility = View.INVISIBLE
         isLoading = false
@@ -147,17 +92,19 @@ class SearchFragment : Fragment(R.layout.fragment_item){
             val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
             val isNotAtBeginning = firstVisibleItemPosition >= 0
             val isTotalMoreThanVisible = totalItemCount >= Constants.QUERY_PAGE_SIZE
-            val shouldPaginate = isNoErrors && isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning &&
-                    isTotalMoreThanVisible && isScrolling
-            if(shouldPaginate) {
-                viewModel.searchMovies(etSearch.text.toString())
+            val shouldPaginate =
+                isNoErrors && isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning &&
+                        isTotalMoreThanVisible && isScrolling
+            if (shouldPaginate) {
+                viewModel.searchMovies(searchIcon.toString())
                 isScrolling = false
             }
+
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-            if(newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
                 isScrolling = true
             }
         }
@@ -175,87 +122,102 @@ class SearchFragment : Fragment(R.layout.fragment_item){
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
 
+        inflater.inflate(R.menu.toolbar_menu, menu)
+        searchIcon = menu.findItem(R.id.search_clicked)
+        searchView = searchIcon.actionView as SearchView
 
+        val favIcon = menu.findItem((R.id.favourite_clicked))
+        val hasDbItems = viewModel.hasDbItems()
+        favIcon.isVisible = hasDbItems
 
-
-
-
-//    private fun setUpRecycler(){
-//        binding.apply {
-//            recyclerView.setHasFixedSize(true)
-//            recyclerView.itemAnimator = null
-//            recyclerView.adapter = pagingAdapter
-//                .withLoadStateHeaderAndFooter(
-//                    header = LoadStateAdapter { pagingAdapter.retry() },
-//                    footer = LoadStateAdapter { pagingAdapter.retry() }
-//                )
-//            buttonRetry.setOnClickListener {
-//                pagingAdapter.retry()
-//            }
-//        }
-//        viewModel.resultData.observe(viewLifecycleOwner) {
-//            pagingAdapter.submitData(viewLifecycleOwner.lifecycle, it)
-//        }
-//
-//
-//        pagingAdapter.addLoadStateListener { loadState ->
-//            binding.apply {
-//                progressBar.isVisible = loadState.source.refresh is LoadState.Loading
-//                recyclerView.isVisible = loadState.source.refresh is LoadState.NotLoading
-//                buttonRetry.isVisible = loadState.source.refresh is LoadState.Error
-//                textViewError.isVisible = loadState.source.refresh is LoadState.Error
-//
-//                //empty view
-//                if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && pagingAdapter.itemCount < 1) {
-//                    recyclerView.isVisible = false
-//                    textViewError.isVisible = true
-//                } else {
-//                    textViewError.isVisible = false
+        var job: Job? = null
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+//                if (p0 != null) {
+//                    viewModel.getFavMoviesSeries(p0)
 //                }
-//            }
-//        }
-//    }
-//
-//
-//    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-//        super.onCreateOptionsMenu(menu, inflater)
-//
-//        inflater.inflate(R.menu.toolbar_menu, menu)
-//
-//        val searchIcon = menu.findItem(R.id.search_clicked)
-//        val searchView = searchIcon.actionView as SearchView
-//        val favouriteIcon = menu.findItem(R.id.favourite_clicked)
-//        val favouriteSearchView = favouriteIcon.isVisible
-//
-//        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//
-//            override fun onQueryTextSubmit(p0: String?): Boolean {
-//                setUpRecycler()
-//                p0?.let {
-//                    binding.recyclerView.scrollToPosition(0)//no animation
-//                    searchView.clearFocus()
-//                }
-//                return true
-//            }
-//
-//            override fun onQueryTextChange(p0: String?): Boolean {
-//                if (StringUtils.isEmptyOrNull(p0)) {
-//                    viewModel.searchMovies(p0!!)
-//                    setUpRecycler()
-//
-//                }
-//                return true
-//            }
-//
-//        })
-//    }
+                p0?.let {
+                    binding.recyclerView.scrollToPosition(0)//no animation
+                    searchView.clearFocus()
+                }
+//                viewModel.isMovieInDB(id).observe(viewLifecycleOwner, Observer { exists ->
+//                    if (exists) {
+//                        p0?.let {
+//                            binding.recyclerView.scrollToPosition(0)//no animation
+//                            searchView.clearFocus()
+//                        }
+//                    } else {
+//                        viewModel.searchMovieSeries.postValue(Resource.Error("Your search doesn't exist in the favourite database"))
+//                    }
+//                })
+                return true
+            }
 
-//    override fun itemClicked(movie: MovieResultModel) {
-//        val action = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(movie)
-//
-//        findNavController().navigate(action)
-//    }
-
-
+            override fun onQueryTextChange(p0: String?): Boolean {
+                job?.cancel()
+                job = MainScope().launch {
+                    delay(SEARCH_TIME_DELAY)
+                    p0?.let {
+                        if (p0.toString().isNotEmpty()) {
+                            if (hasDbItems) {
+                                viewModel.searchMovies(searchIcon.toString())
+//                                viewModel.getFavMoviesSeries()
+//                                    .observe(viewLifecycleOwner, Observer { movieSeries ->
+//                                        movieSeriesAdapter.differ.submitList(movieSeries)
+//                                    })
+                            } else {
+                                viewModel.searchMovies(p0.toString())
+                            }
+                        }
+                    }
+                }
+                return true
+            }
+        })
+        viewModel.searchMovieSeries.observe(viewLifecycleOwner, Observer { response ->
+            when (response) {
+                is Resource.Success -> {
+                    hideProgressBar()
+                    hideErrorMessage()
+                    response.data?.let { movSeriesResponse ->
+                        movieSeriesAdapter.differ.submitList(movSeriesResponse.results.toList())
+                        val totalPages =
+                            movSeriesResponse.total_pages / Constants.QUERY_PAGE_SIZE + 2
+                        isLastPage = viewModel.searchMovieSeriesPage == totalPages
+                        if (isLastPage) {
+                            recycler_view.setPadding(0, 0, 0, 0)
+                        }
+                    }
+                }
+                is Resource.Error -> {
+                    hideProgressBar()
+                    response.message?.let { message ->
+                        Toast.makeText(activity, "An error occured: $message", Toast.LENGTH_LONG)
+                            .show()
+                        showErrorMessage(message)
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressBar()
+                }
+            }
+        })
+        button_retry.setOnClickListener {
+            if (searchIcon.toString().isNotEmpty()) {
+                if (hasDbItems) {
+                    viewModel.searchMovies(searchIcon.toString())
+//                    viewModel.getFavMoviesSeries().observe(viewLifecycleOwner, Observer { movieSeries ->
+//                            movieSeriesAdapter.differ.submitList(movieSeries)
+//                        })
+                } else {
+                    viewModel.searchMovies(searchIcon.toString())
+                }
+            } else {
+                hideErrorMessage()
+            }
+        }
+    }
 }

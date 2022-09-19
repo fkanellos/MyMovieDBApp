@@ -5,11 +5,14 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.myMovieApp.MovieApp
 import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.common.Resource
 import com.example.myMovieApp.feature_movieApp.data.api.repository.Repo
+import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
 import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.SearchMoviesDao
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -20,14 +23,24 @@ import javax.inject.Inject
 class MovieAppViewModel @Inject constructor(
     app: Application,
     private val repo: Repo,
-) : AndroidViewModel(app){
+) : AndroidViewModel(app) {
 
     val searchMovieSeries: MutableLiveData<Resource<SearchMoviesDao>> = MutableLiveData()
     var searchMovieSeriesPage = 1
     var searchMovieSeriesResponse: SearchMoviesDao? = null
-    var newSearchQuery:String? = null
-    var oldSearchQuery:String? = null
+    var newSearchQuery: String? = null
+    var oldSearchQuery: String? = null
 
+
+    fun saveMovieSeries(movieSeries: MovieResultModel) = viewModelScope.launch {
+        repo.insertMoviesSeries(movieSeries)
+    }
+
+    fun deleteSavedMovieSeries(movieSeries: MovieResultModel) = viewModelScope.launch {
+        repo.deleteSavedMoviesSeries(movieSeries)
+    }
+
+    fun isMovieInDB(id: Int) = repo.isMovieInDB(id)
 
     fun searchMovies(query: String) = viewModelScope.launch {
         safeSearchMovieSeriesCall(query)
@@ -37,24 +50,25 @@ class MovieAppViewModel @Inject constructor(
         newSearchQuery = query
         searchMovieSeries.postValue(Resource.Loading())
         try {
-            if(hasInternetConnection()) {
-                // TODO NA MPEI ELEGXOS GIA TO AN EXEI PATISEI TO FAVBTN GIA NA KANEI SEARCH APO TIN DB
-                val response = repo.searchMoviesSeries(query, searchMovieSeriesPage,Constants.API_KEY)
+            if (hasInternetConnection()) {
+                val response =
+                    repo.searchMoviesSeries(query, searchMovieSeriesPage, Constants.API_KEY)
                 searchMovieSeries.postValue(handleSearchNewsResponse(response))
             } else {
                 searchMovieSeries.postValue(Resource.Error("No internet connection"))
             }
-        } catch(t: Throwable) {
-            when(t) {
+        } catch (t: Throwable) {
+            when (t) {
                 is IOException -> searchMovieSeries.postValue(Resource.Error("Network Failure"))
                 else -> searchMovieSeries.postValue(Resource.Error("Conversion Error"))
             }
         }
     }
-    private fun handleSearchNewsResponse(response: Response<SearchMoviesDao>) : Resource<SearchMoviesDao> {
-        if(response.isSuccessful) {
+
+    private fun handleSearchNewsResponse(response: Response<SearchMoviesDao>): Resource<SearchMoviesDao> {
+        if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
-                if(searchMovieSeriesResponse == null || newSearchQuery != oldSearchQuery) {
+                if (searchMovieSeriesResponse == null || newSearchQuery != oldSearchQuery) {
                     searchMovieSeriesPage = 1
                     oldSearchQuery = newSearchQuery
                     searchMovieSeriesResponse = resultResponse
@@ -70,6 +84,7 @@ class MovieAppViewModel @Inject constructor(
         }
         return Resource.Error(response.message())
     }
+
     private fun hasInternetConnection(): Boolean {
         val connectivityManager = getApplication<MovieApp>().getSystemService(
             Context.CONNECTIVITY_SERVICE
@@ -95,4 +110,31 @@ class MovieAppViewModel @Inject constructor(
         }
         return false
     }
+
+    fun getFavMoviesSeries(query: String) = repo.getSavedMoviesSeries(query)
+
+
+    fun hasDbItems(): Boolean {
+        return if (!repo.db.isOpen){
+
+            return true
+        } else {
+            false
+        }
+
+    }
+//    private val _itemExistingDb = MutableLiveData<Boolean>() // We make private variable so that UI/View can't modify directly
+//    val itemExistingDb: LiveData<Boolean>
+//    get() = _itemExistingDb
+//
+//
+//    fun getMovieSeriesExistStatus(id: Int) {
+//        _itemExistingDb.value = true// Rather than returning LiveData, we set value to our local MutableLiveData
+//    }
+//
+//    fun observeServerTime(): LiveData<Boolean> {
+//        return itemExistingDb //Here we expose our MutableLiveData as LiveData to avoid modification from UI/View
+//    }
+
+
 }

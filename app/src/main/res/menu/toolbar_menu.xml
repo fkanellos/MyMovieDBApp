@@ -10,8 +10,9 @@
         app:showAsAction="ifRoom|collapseActionView"/>
     <item
         android:id="@+id/favourite_clicked"
-        android:icon="@drawable/ic_favourite"
+        android:icon="@drawable/ic_fav"
         android:title="favourite"
+        android:visible="false"
         android:checkable="false"
         app:showAsAction="ifRoom"/>
 

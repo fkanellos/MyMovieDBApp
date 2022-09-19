@@ -1,6 +1,5 @@
 package com.example.myMovieApp.feature_movieApp.data.api.repository
 
-import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.feature_movieApp.data.api.RetrofitInstance
 import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
 import com.example.myMovieApp.feature_movieApp.db.AppDatabase
@@ -16,4 +15,6 @@ class Repo (
     fun getSavedMoviesSeries(query: String) = db.movieDao().getMovies(query)
 
     suspend fun deleteSavedMoviesSeries(movieSeries: MovieResultModel) = db.movieDao().deleteMovieSeries(movieSeries)
+
+    fun isMovieInDB(id: Int) = db.movieDao().getMovies(id.toString())
 }
