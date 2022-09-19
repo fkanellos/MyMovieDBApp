@@ -32,21 +32,18 @@ class MovieAppViewModel @Inject constructor(
     var oldSearchQuery: String? = null
 
 //    Edw logika tha prepei na kanw init kai na vlepw an uparxoun apothikevmenes tainies
-//    init {
-//        getSavedMovSer()
-//    }
-//    fun getSavedMovSer() = viewModelScope.launch {
-//        safeGetMoviesSeries()
-//    }
-//
-//    private suspend fun safeGetMoviesSeries() {
-//        val response = repo.hasDBItems()
-//        response.id.let {
-//            if (it.)
-//        }
-//
-//
-//    }
+    init {
+        getSavedMovSer()
+    }
+    private fun getSavedMovSer() = viewModelScope.launch {
+        safeGetMoviesSeries()
+    }
+
+    fun safeGetMoviesSeries(): Boolean {
+        val response = repo.hasDBItems()
+        return response.id.toString().isNotEmpty()
+    }
+
 
 
     fun saveMovieSeries(movieSeries: MovieResultModel) = viewModelScope.launch {
@@ -62,6 +59,22 @@ class MovieAppViewModel @Inject constructor(
     fun searchMovies(query: String) = viewModelScope.launch {
         safeSearchMovieSeriesCall(query)
     }
+    fun getFavMoviesSeries(query: String) = repo.getSavedMoviesSeries(query)
+//        viewModelScope.launch {
+//
+//        safeSearchMoviesSeriesDB(query)
+
+
+//    private suspend fun safeSearchMoviesSeriesDB(query: String) = viewModelScope.launch{
+//        newSearchQuery = query
+//        searchMovieSeries.postValue(Resource.Loading())
+//        try {
+//            val response = repo.getSavedMoviesSeries(query)
+//            searchMovieSeries.postValue(handleSearchNewsResponse(response))
+//        }
+//
+//    }
+
 
     private suspend fun safeSearchMovieSeriesCall(query: String) {
         newSearchQuery = query
@@ -128,18 +141,10 @@ class MovieAppViewModel @Inject constructor(
         return false
     }
 
-    fun getFavMoviesSeries(query: String) = repo.getSavedMoviesSeries(query)
 
 
-    fun hasDbItems(): Boolean {
-        return if (!repo.db.isOpen){
 
-            return true
-        } else {
-            false
-        }
 
-    }
 //    private val _itemExistingDb = MutableLiveData<Boolean>() // We make private variable so that UI/View can't modify directly
 //    val itemExistingDb: LiveData<Boolean>
 //    get() = _itemExistingDb

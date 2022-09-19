@@ -37,17 +37,17 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
     lateinit var movieSeriesAdapter: MovieSeriesAdapter
     lateinit var searchIcon: MenuItem
     lateinit var searchView: SearchView
+    private var hasDbItems: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentItemBinding.bind(view)
         viewModel = (activity as MainActivity).viewModel
-//        viewModel.hasDbItems()
         setUpRecyclerView()
         setHasOptionsMenu(true)
 
         movieSeriesAdapter.setOnItemClickListener {
             val action = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(it)
-
             findNavController().navigate(action)
         }
     }
@@ -130,53 +130,48 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         searchView = searchIcon.actionView as SearchView
 
         val favIcon = menu.findItem((R.id.favourite_clicked))
-        val hasDbItems = viewModel.hasDbItems()
-        favIcon.isVisible = hasDbItems
+        if (viewModel.safeGetMoviesSeries()){
+            favIcon.isVisible = true
+            hasDbItems = true
+        } else {
+            favIcon.isVisible = false
+            hasDbItems = false
+        }
 
         var job: Job? = null
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(p0: String?): Boolean {
-//                if (p0 != null) {
-//                    viewModel.getFavMoviesSeries(p0)
-//                }
-                p0?.let {
+            override fun onQueryTextSubmit(text: String?): Boolean {
+                text?.let {
                     binding.recyclerView.scrollToPosition(0)//no animation
                     searchView.clearFocus()
                 }
-//                viewModel.isMovieInDB(id).observe(viewLifecycleOwner, Observer { exists ->
-//                    if (exists) {
-//                        p0?.let {
-//                            binding.recyclerView.scrollToPosition(0)//no animation
-//                            searchView.clearFocus()
-//                        }
-//                    } else {
-//                        viewModel.searchMovieSeries.postValue(Resource.Error("Your search doesn't exist in the favourite database"))
-//                    }
-//                })
                 return true
             }
 
-            override fun onQueryTextChange(p0: String?): Boolean {
+            override fun onQueryTextChange(text: String?): Boolean {
                 job?.cancel()
                 job = MainScope().launch {
                     delay(SEARCH_TIME_DELAY)
-                    p0?.let {
-                        if (p0.toString().isNotEmpty()) {
+                    text?.let {
+                        if (text.toString().isNotEmpty()) {
+                            // TODO: search from net or db
                             if (hasDbItems) {
-                                viewModel.searchMovies(searchIcon.toString())
+                                viewModel.getFavMoviesSeries(text.toString())
 //                                viewModel.getFavMoviesSeries()
 //                                    .observe(viewLifecycleOwner, Observer { movieSeries ->
 //                                        movieSeriesAdapter.differ.submitList(movieSeries)
 //                                    })
                             } else {
-                                viewModel.searchMovies(p0.toString())
+                                viewModel.searchMovies(text.toString())
                             }
+//                            viewModel.searchMovies(text.toString())
                         }
                     }
                 }
                 return true
             }
         })
+
         viewModel.searchMovieSeries.observe(viewLifecycleOwner, Observer { response ->
             when (response) {
                 is Resource.Success -> {
@@ -208,7 +203,8 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         button_retry.setOnClickListener {
             if (searchIcon.toString().isNotEmpty()) {
                 if (hasDbItems) {
-                    viewModel.searchMovies(searchIcon.toString())
+//                    viewModel.searchMovies(searchIcon.toString())
+                    viewModel.getFavMoviesSeries(searchIcon.toString())
 //                    viewModel.getFavMoviesSeries().observe(viewLifecycleOwner, Observer { movieSeries ->
 //                            movieSeriesAdapter.differ.submitList(movieSeries)
 //                        })

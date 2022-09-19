@@ -18,6 +18,7 @@ class Repo (
 
     fun isMovieInDB(id: Int) = db.movieDao().getMovies(id.toString())
 
-//    fun hasDBItems() = db.movieDao().getAll()
+    fun hasDBItems() = db.movieDao().getAll()
+
 
 }
