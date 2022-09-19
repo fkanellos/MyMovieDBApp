@@ -31,6 +31,23 @@ class MovieAppViewModel @Inject constructor(
     var newSearchQuery: String? = null
     var oldSearchQuery: String? = null
 
+//    Edw logika tha prepei na kanw init kai na vlepw an uparxoun apothikevmenes tainies
+//    init {
+//        getSavedMovSer()
+//    }
+//    fun getSavedMovSer() = viewModelScope.launch {
+//        safeGetMoviesSeries()
+//    }
+//
+//    private suspend fun safeGetMoviesSeries() {
+//        val response = repo.hasDBItems()
+//        response.id.let {
+//            if (it.)
+//        }
+//
+//
+//    }
+
 
     fun saveMovieSeries(movieSeries: MovieResultModel) = viewModelScope.launch {
         repo.insertMoviesSeries(movieSeries)

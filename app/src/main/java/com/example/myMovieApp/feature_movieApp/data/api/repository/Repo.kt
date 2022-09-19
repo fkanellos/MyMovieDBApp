@@ -17,4 +17,7 @@ class Repo (
     suspend fun deleteSavedMoviesSeries(movieSeries: MovieResultModel) = db.movieDao().deleteMovieSeries(movieSeries)
 
     fun isMovieInDB(id: Int) = db.movieDao().getMovies(id.toString())
+
+//    fun hasDBItems() = db.movieDao().getAll()
+
 }
