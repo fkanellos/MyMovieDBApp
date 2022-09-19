@@ -38,6 +38,7 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
     lateinit var searchIcon: MenuItem
     lateinit var searchView: SearchView
     private var hasDbItems: Boolean = false
+    private var isFabClicked: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -122,6 +123,22 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         }
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.favourite_clicked) {
+            if (item.isChecked && !isFabClicked){
+                isFabClicked = true
+                item.setIcon(R.drawable.ic_fav_clicked)
+            } else {
+                isFabClicked = false
+                item.setIcon(R.drawable.ic_fav)
+            }
+
+        }
+
+
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
@@ -129,14 +146,19 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         searchIcon = menu.findItem(R.id.search_clicked)
         searchView = searchIcon.actionView as SearchView
 
+
         val favIcon = menu.findItem((R.id.favourite_clicked))
+
         if (viewModel.safeGetMoviesSeries()){
             favIcon.isVisible = true
             hasDbItems = true
+
         } else {
             favIcon.isVisible = false
             hasDbItems = false
         }
+
+
 
         var job: Job? = null
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -156,11 +178,17 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
                         if (text.toString().isNotEmpty()) {
                             // TODO: search from net or db
                             if (hasDbItems) {
-                                viewModel.getFavMoviesSeries(text.toString())
+                                if (isFabClicked){
+//                                    viewModel.getFavMoviesSeries(text.toString())
 //                                viewModel.getFavMoviesSeries()
 //                                    .observe(viewLifecycleOwner, Observer { movieSeries ->
 //                                        movieSeriesAdapter.differ.submitList(movieSeries)
 //                                    })
+
+                                } else {
+                                    viewModel.searchMovies(text.toString())
+                                }
+
                             } else {
                                 viewModel.searchMovies(text.toString())
                             }
