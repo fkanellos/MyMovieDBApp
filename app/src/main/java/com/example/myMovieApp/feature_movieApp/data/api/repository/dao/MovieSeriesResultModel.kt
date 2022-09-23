@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 import kotlinx.android.parcel.Parcelize
 
 @Entity(
-    tableName = "movie table"
+    tableName = "movie and TV Series table"
 )
 @Parcelize
 data class MovieResultModel(
@@ -14,7 +14,7 @@ data class MovieResultModel(
     val id: Int?,
     val adult: Boolean?,
     val backdrop_path: String?,
-//    val genre_ids: List<Int>?,
+    var genre: String?,
     val media_type: String?,
     val original_language: String?,
     val original_title: String?,
@@ -26,9 +26,8 @@ data class MovieResultModel(
     val video: Boolean?,
     val first_air_date: String?,
     val name: String?,
-//    val origin_country: List<String>?,
     val original_name: String?,
     val vote_average: Double?,
     val vote_count: Int?,
-//    val videos: VideoResultModel?
+    var videos: String?
 ) : Parcelable

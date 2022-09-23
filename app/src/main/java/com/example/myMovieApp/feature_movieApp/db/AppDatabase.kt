@@ -12,7 +12,7 @@ import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResu
 )
 
 abstract class AppDatabase: RoomDatabase() {
-    abstract fun movieDao(): MovieDao
+    abstract fun movieDao(): MovieDbDao
 
     companion object {
         @Volatile

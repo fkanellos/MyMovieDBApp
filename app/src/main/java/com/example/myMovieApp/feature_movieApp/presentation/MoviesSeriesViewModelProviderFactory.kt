@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.myMovieApp.feature_movieApp.data.api.repository.Repo
 import com.example.myMovieApp.feature_movieApp.domain.model.MovieAppViewModel
 
-class NewsViewModelProviderFactory (
+/*  instantiate ViewModel */
+class MoviesSeriesViewModelProviderFactory (
     val app: Application,
     val movieSeriesRepo: Repo
 ) : ViewModelProvider.Factory {

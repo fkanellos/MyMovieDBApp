@@ -31,6 +31,9 @@ class MovieSeriesAdapter : RecyclerView.Adapter<MovieSeriesAdapter.MoviesSeriesV
             return oldItem == newItem
         }
     }
+    /* we use AsyncListDiffer to consume the values from a LiveData of List and present the data simply for the adapter.
+    * It computes differences in list contents via DiffUtil on a background thread as new Lists are received.
+    * we also use differ.currentList to access the current list and present its data object*/
     val differ = AsyncListDiffer(this, differCallback)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoviesSeriesVieHolder {

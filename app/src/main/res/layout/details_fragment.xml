@@ -40,8 +40,21 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="end"
-                android:layout_gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:gravity="end">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/genre"
+                    android:gravity="start"
+                    android:layout_marginStart="@dimen/margin_8"
+                    android:layout_marginEnd="@dimen/margin_8"
+                    tools:visibility="visible"
+                    android:textSize="@dimen/textSize_16"
+                    android:textColor="@color/black"
+                    tools:text="genre"
+                    android:layout_weight="3"/>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -54,16 +67,15 @@
                     android:textColor="@color/black"
                     tools:text="testttt"
                     app:drawableStartCompat="@drawable/ic_rating_star_black" />
-
-                <Button
-                    android:text="add"
+                <ToggleButton
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="@dimen/margin_8"
                     android:id="@+id/favBtn"
-                    android:layout_height="50dp"
-                    android:layout_width="65dp"
-                    android:textColor="@color/black"
-                    android:backgroundTint="@color/white"
-                    android:layout_marginEnd="@dimen/margin_8">
-                </Button>
+                    android:background="@drawable/ic_fav"
+                    style="@style/toggleButton"
+                    />
+
 
             </LinearLayout>
 
@@ -80,9 +92,11 @@
                 android:paddingStart="@dimen/margin_4"
                 android:paddingEnd="@dimen/margin_4"/>
 
-<!--            <include layout="@layout/youtube"-->
-<!--                android:layout_height="300dp"-->
-<!--                android:layout_width="match_parent"/>-->
+            <include layout="@layout/video_view"
+                android:layout_height="300dp"
+                android:visibility="visible"
+                android:layout_margin="@dimen/margin_8"
+                android:layout_width="match_parent"/>
 
         </LinearLayout>
 

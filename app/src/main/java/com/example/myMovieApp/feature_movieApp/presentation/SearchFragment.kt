@@ -6,8 +6,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.AbsListView
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -19,6 +19,7 @@ import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.common.Constants.SEARCH_TIME_DELAY
 import com.example.myMovieApp.common.Resource
 import com.example.myMovieApp.databinding.FragmentItemBinding
+import com.example.myMovieApp.feature_movieApp.data.api.repository.ItemType
 import com.example.myMovieApp.feature_movieApp.domain.model.MovieAppViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_item.*
@@ -39,6 +40,8 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
     lateinit var searchView: SearchView
     private var hasDbItems: Boolean = false
     private var isFabClicked: Boolean = false
+    private lateinit var lastSearch: String
+    private var fabState: Boolean = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,6 +52,11 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
 
         movieSeriesAdapter.setOnItemClickListener {
             val action = SearchFragmentDirections.actionSearchFragmentToDetailsFragment(it)
+            // update the model with the videos
+            val type = if (it.name.isNullOrEmpty()) ItemType.MOVIE else ItemType.SERIES
+            it.id?.let { it2 ->
+                viewModel.getMovieSeriesGenre(type, it2)
+            }
             findNavController().navigate(action)
         }
     }
@@ -57,6 +65,7 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         progress_bar.visibility = View.INVISIBLE
         isLoading = false
     }
+
     private fun showProgressBar() {
         progress_bar.visibility = View.VISIBLE
         isLoading = true
@@ -100,7 +109,6 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
                 viewModel.searchMovies(searchIcon.toString())
                 isScrolling = false
             }
-
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -110,10 +118,12 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
             }
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
     private fun setUpRecyclerView() {
         movieSeriesAdapter = MovieSeriesAdapter()
         recycler_view.apply {
@@ -123,22 +133,27 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         }
     }
 
+    /* here we handle the action for menu items in toolbar */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.favourite_clicked) {
-            if (item.isChecked && !isFabClicked){
-                isFabClicked = true
-                item.setIcon(R.drawable.ic_fav_clicked)
-            } else {
-                isFabClicked = false
-                item.setIcon(R.drawable.ic_fav)
+        when (item.itemId) {
+            R.id.favourite_clicked -> {
+                fabState = !item.isChecked
+                item.isChecked = fabState
+                isFabClicked = fabState
+                item.icon =
+                    if (fabState) ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_fav_clicked
+                    ) else ContextCompat.getDrawable(requireContext(), R.drawable.ic_fav)
+
+                return true
             }
-
+            R.id.search_clicked -> return true
         }
-
-
         return super.onOptionsItemSelected(item)
     }
 
+    /* here we handle the action for menu items in toolbar */
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
@@ -146,19 +161,14 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
         searchIcon = menu.findItem(R.id.search_clicked)
         searchView = searchIcon.actionView as SearchView
 
-
         val favIcon = menu.findItem((R.id.favourite_clicked))
-
-        if (viewModel.safeGetMoviesSeries()){
+        if (viewModel.safeGetMoviesSeries()) {
             favIcon.isVisible = true
             hasDbItems = true
-
         } else {
             favIcon.isVisible = false
             hasDbItems = false
         }
-
-
 
         var job: Job? = null
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -175,24 +185,25 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
                 job = MainScope().launch {
                     delay(SEARCH_TIME_DELAY)
                     text?.let {
-                        if (text.toString().isNotEmpty()) {
-                            // TODO: search from net or db
+                        if (text.isNotEmpty()) {
+                            lastSearch = text
                             if (hasDbItems) {
-                                if (isFabClicked){
-//                                    viewModel.getFavMoviesSeries(text.toString())
-//                                viewModel.getFavMoviesSeries()
-//                                    .observe(viewLifecycleOwner, Observer { movieSeries ->
-//                                        movieSeriesAdapter.differ.submitList(movieSeries)
-//                                    })
-
+                                if (isFabClicked) {
+                                    viewModel.getFavMoviesSeries(text)
+                                        .observe(viewLifecycleOwner, Observer { favMovies ->
+                                            movieSeriesAdapter.differ.submitList(favMovies)
+                                        })
                                 } else {
-                                    viewModel.searchMovies(text.toString())
+                                    viewModel.searchMovies(text)
                                 }
 
                             } else {
-                                viewModel.searchMovies(text.toString())
+                                viewModel.searchMovies(text)
                             }
-//                            viewModel.searchMovies(text.toString())
+
+                        } else {
+                            lastSearch = ""
+                            if (viewModel.hasInternetConnection()) movieSeriesAdapter.differ.submitList(emptyList()) else viewModel.searchMovieSeries.postValue(Resource.Error("Network Failure"))
                         }
                     }
                 }
@@ -218,8 +229,7 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
                 is Resource.Error -> {
                     hideProgressBar()
                     response.message?.let { message ->
-                        Toast.makeText(activity, "An error occured: $message", Toast.LENGTH_LONG)
-                            .show()
+                        viewModel.searchMovieSeries.postValue(Resource.Error(message))
                         showErrorMessage(message)
                     }
                 }
@@ -227,21 +237,35 @@ class SearchFragment : Fragment(R.layout.fragment_item) {
                     showProgressBar()
                 }
             }
+            button_retry.setOnClickListener {
+                retryHandle()
+            }
         })
-        button_retry.setOnClickListener {
-            if (searchIcon.toString().isNotEmpty()) {
-                if (hasDbItems) {
-//                    viewModel.searchMovies(searchIcon.toString())
-                    viewModel.getFavMoviesSeries(searchIcon.toString())
-//                    viewModel.getFavMoviesSeries().observe(viewLifecycleOwner, Observer { movieSeries ->
-//                            movieSeriesAdapter.differ.submitList(movieSeries)
-//                        })
+
+    }
+
+    private fun retryHandle() {
+        if (lastSearch.isNotEmpty()) {
+            if (hasDbItems) {
+                if (fabState) {
+                    hideErrorMessage()
+                    viewModel.getFavMoviesSeries(lastSearch)
                 } else {
-                    viewModel.searchMovies(searchIcon.toString())
+                    hideErrorMessage()
+                    viewModel.searchMovies(lastSearch)
                 }
             } else {
-                hideErrorMessage()
+                viewModel.searchMovieSeries.postValue(Resource.Error("Network Failure"))
             }
+        } else {
+            if (viewModel.hasInternetConnection()) {
+                viewModel.searchMovieSeries.postValue(Resource.Error("Start typing again"))
+                button_retry.visibility = View.INVISIBLE
+            } else {
+                hideProgressBar()
+                viewModel.searchMovieSeries.postValue(Resource.Error("Network Failure"))
+            }
+
         }
     }
 }

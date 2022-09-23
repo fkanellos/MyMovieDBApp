@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
         val movieSeriesRepository = Repo(AppDatabase(this))
         val viewModelProviderFactory =
-            NewsViewModelProviderFactory(application, movieSeriesRepository)
+            MoviesSeriesViewModelProviderFactory(application, movieSeriesRepository)
         viewModel =
             ViewModelProvider(this, viewModelProviderFactory).get(MovieAppViewModel::class.java)
 

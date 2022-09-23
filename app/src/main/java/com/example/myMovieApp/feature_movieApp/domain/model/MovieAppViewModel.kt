@@ -11,7 +11,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.myMovieApp.MovieApp
 import com.example.myMovieApp.common.Constants
 import com.example.myMovieApp.common.Resource
+import com.example.myMovieApp.feature_movieApp.data.api.repository.ItemType
 import com.example.myMovieApp.feature_movieApp.data.api.repository.Repo
+import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.GenreModel
 import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.MovieResultModel
 import com.example.myMovieApp.feature_movieApp.data.api.repository.dao.SearchMoviesDao
 import kotlinx.coroutines.launch
@@ -30,21 +32,22 @@ class MovieAppViewModel @Inject constructor(
     var searchMovieSeriesResponse: SearchMoviesDao? = null
     var newSearchQuery: String? = null
     var oldSearchQuery: String? = null
+    val movieSeriesGenre: MutableLiveData<Resource<GenreModel>> = MutableLiveData()
 
-//    Edw logika tha prepei na kanw init kai na vlepw an uparxoun apothikevmenes tainies
+    /* initialize getSavedMovSer() so to be aware if the db has items or isEmpty  */
     init {
         getSavedMovSer()
     }
+
     private fun getSavedMovSer() = viewModelScope.launch {
         safeGetMoviesSeries()
     }
 
+    /* check if db isEmpty or not*/
     fun safeGetMoviesSeries(): Boolean {
         val response = repo.hasDBItems()
-        return response.id.toString().isNotEmpty()
+        return response?.id.toString().isNullOrEmpty()
     }
-
-
 
     fun saveMovieSeries(movieSeries: MovieResultModel) = viewModelScope.launch {
         repo.insertMoviesSeries(movieSeries)
@@ -54,28 +57,29 @@ class MovieAppViewModel @Inject constructor(
         repo.deleteSavedMoviesSeries(movieSeries)
     }
 
-    fun isMovieInDB(id: Int) = repo.isMovieInDB(id)
+    /* check if db has movies or series*/
+    fun isMovieInDB(id: Int): Boolean {
+        return repo.isMovieInDB(id)
+    }
+
 
     fun searchMovies(query: String) = viewModelScope.launch {
         safeSearchMovieSeriesCall(query)
     }
+
+    /* search in db for movies or series */
     fun getFavMoviesSeries(query: String) = repo.getSavedMoviesSeries(query)
-//        viewModelScope.launch {
-//
-//        safeSearchMoviesSeriesDB(query)
 
+    fun getMovieSeriesGenre(itemType: ItemType, id: Int) = viewModelScope.launch {
+        val response = repo.getMoviesSeriesGenre(itemType, id, Constants.API_KEY)
 
-//    private suspend fun safeSearchMoviesSeriesDB(query: String) = viewModelScope.launch{
-//        newSearchQuery = query
-//        searchMovieSeries.postValue(Resource.Loading())
-//        try {
-//            val response = repo.getSavedMoviesSeries(query)
-//            searchMovieSeries.postValue(handleSearchNewsResponse(response))
-//        }
-//
-//    }
+        if (response.body() == null) {
+        } else {
+            movieSeriesGenre.postValue(Resource.Success(response.body()!!))
+        }
+    }
 
-
+    /* if we don't have problem with internet connection we call for movies or series or show the appropriate error */
     private suspend fun safeSearchMovieSeriesCall(query: String) {
         newSearchQuery = query
         searchMovieSeries.postValue(Resource.Loading())
@@ -95,6 +99,7 @@ class MovieAppViewModel @Inject constructor(
         }
     }
 
+    /* handle the response either is successful or not */
     private fun handleSearchNewsResponse(response: Response<SearchMoviesDao>): Resource<SearchMoviesDao> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
@@ -104,10 +109,10 @@ class MovieAppViewModel @Inject constructor(
                     searchMovieSeriesResponse = resultResponse
                 } else {
                     searchMovieSeriesPage++
-                    val oldArticles = searchMovieSeriesResponse?.results
-                    val newArticles = resultResponse.results
+                    val oldMovieSeries = searchMovieSeriesResponse?.results
+                    val newMovieSeries = resultResponse.results
 
-                    oldArticles?.addAll(newArticles)
+                    oldMovieSeries?.addAll(newMovieSeries)
                 }
                 return Resource.Success(searchMovieSeriesResponse ?: resultResponse)
             }
@@ -115,13 +120,14 @@ class MovieAppViewModel @Inject constructor(
         return Resource.Error(response.message())
     }
 
-    private fun hasInternetConnection(): Boolean {
+    fun hasInternetConnection(): Boolean {
         val connectivityManager = getApplication<MovieApp>().getSystemService(
             Context.CONNECTIVITY_SERVICE
         ) as ConnectivityManager
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
             return when {
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
                 capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
@@ -130,7 +136,7 @@ class MovieAppViewModel @Inject constructor(
             }
         } else {
             connectivityManager.activeNetworkInfo?.run {
-                return when(type) {
+                return when (type) {
                     ConnectivityManager.TYPE_WIFI -> true
                     ConnectivityManager.TYPE_MOBILE -> true
                     ConnectivityManager.TYPE_ETHERNET -> true
@@ -140,23 +146,4 @@ class MovieAppViewModel @Inject constructor(
         }
         return false
     }
-
-
-
-
-
-//    private val _itemExistingDb = MutableLiveData<Boolean>() // We make private variable so that UI/View can't modify directly
-//    val itemExistingDb: LiveData<Boolean>
-//    get() = _itemExistingDb
-//
-//
-//    fun getMovieSeriesExistStatus(id: Int) {
-//        _itemExistingDb.value = true// Rather than returning LiveData, we set value to our local MutableLiveData
-//    }
-//
-//    fun observeServerTime(): LiveData<Boolean> {
-//        return itemExistingDb //Here we expose our MutableLiveData as LiveData to avoid modification from UI/View
-//    }
-
-
 }
